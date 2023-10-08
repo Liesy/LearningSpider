@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime
-from .get_hot import get_hot_infos_zhihu
+from .get_hot import get_hot_infos_zhihu, get_qa_infos_quora
 from .get_content import get_answer_content_zhihu
 
 t = datetime.now().strftime('%Y-%m-%d')  # record the time now
@@ -16,7 +16,7 @@ def get_zh_dataset(save_path, hot_top_k, answer_top_k, date_time=None):
     except FileNotFoundError as e:
         print(f'Cannot find the hot news at {date_time}, create new data today.')
         date_time = t
-        hot_urls = get_hot_infos_zhihu()
+        hot_urls = get_hot_infos_zhihu(hot_top_k)
     # print(hot_urls)
 
     content_list = []
@@ -45,5 +45,21 @@ def get_zh_dataset(save_path, hot_top_k, answer_top_k, date_time=None):
     return content_list
 
 
-def get_en_dataset():
-    ...
+def get_en_dataset(save_path, hot_top_k, answer_top_k, date_time=None):
+    date_time = t if date_time is None else date_time
+    try:
+        hot_urls_path = os.path.join(save_path, f'{date_time}_quora_top{hot_top_k}_hot-news_infos.json')
+        with open(hot_urls_path, 'r', encoding='utf-8') as f:
+            hot_urls = json.load(f)
+    except FileNotFoundError as e:
+        print(f'Cannot find the hot news at {date_time}, create new data today.')
+        date_time = t
+        hot_urls = get_qa_infos_quora(hot_top_k)
+    # print(hot_urls)
+
+    content_list = []
+    for item_dict in hot_urls:
+        url = item_dict['info']['url']
+        """TODO
+        
+        """
