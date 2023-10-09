@@ -53,6 +53,59 @@ Quora是动态加载页面，因此我们只能通过`selenium`库对浏览器�
 
 和知乎一样，Quora的首页也是实时变化的，因此扩展数据容量也比较方便。
 
+滚动页面时注意如果已经到底端，就跳出循环：
+
+```python
+
+```
+
+Quora的回答框也很有规律：
+
+<img src="README.assets/image-20231009184532577.png" alt="image-20231009184532577" style="zoom:35%;" />
+
+这时就需要xpath模糊匹配，获得所有包含`q-box dom_annotate_question_answer_item_`的div元素：
+
+```python
+ans_block = driver.find_elements_by_xpath('//div[contains(@class, "dom_annotate_question_answer_item_")]')
+```
+
+然后依次==定位到元素位置==，再进行单击click，==睡眠时间稍长些确保回答被展开==，然后再获取回答内容：
+
+```python
+# 翻页，保证得到足够多的回答
+js = "window.scrollTo(0,document.body.scrollHeight)"
+temp_height = 0
+for _ in range(int(top_k / 2)):
+    driver.execute_script(js)
+    time.sleep(3)
+    # 获取当前滚动条距离顶部的距离
+    check_height = driver.execute_script("return document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;")
+    # 如果两者相等说明到底了
+    if check_height == temp_height:
+        break
+    temp_height = check_height
+```
+
+<img src="README.assets/image-20231009185300875.png" alt="image-20231009185300875" style="zoom:35%;" />
+
+需要注意几点：
+
+1. 对空回答进行过滤，因为有些提问是照片或链接，回答里不一定有文字。
+
+2. Quora存在匿名回答，可能无法正确爬取`usr_url`，注意做好判断。
+
+3. 不要爬到"Related"
+
+   ```python
+   try:
+       # 跳过Related
+       related = block.find_element_by_xpath('.//div[@class="q-text qu-dynamicFontSize--small qu-fontWeight--regular"]').text
+       if related == 'Related':
+           continue
+   except:
+           pass
+   ```
+
 # 数据处理
 
 ## 中文数据
@@ -81,3 +134,8 @@ Quora是动态加载页面，因此我们只能通过`selenium`库对浏览器�
 10. [使用Python的Selenium进行网络自动化的入门教程 - 掘金 (juejin.cn)](https://juejin.cn/post/7171300716194054180)
 11. [Python爬虫（1）一次性搞定Selenium(新版)8种find_element元素定位方式_find_element python-CSDN博客](https://blog.csdn.net/qq_16519957/article/details/128740502)
 12. [如何使用Xpath定位元素（史上最清晰的讲解）_xpath选择某个内容的元素-CSDN博客](https://blog.csdn.net/qq_43022048/article/details/89455496?ops_request_misc=%7B%22request%5Fid%22%3A%22167487981916800213085071%22%2C%22scm%22%3A%2220140713.130102334.pc%5Fall.%22%7D&request_id=167487981916800213085071&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~first_rank_ecpm_v1~hot_rank-5-89455496-null-null.142^v71^control_1,201^v4^add_ask&utm_term=XPATH定位&spm=1018.2226.3001.4187)
+13. [xpath模糊定位的方法 - 简书 (jianshu.com)](https://www.jianshu.com/p/8e4370e68bc0)
+14. [学爬虫利器XPath,看这一篇就够了 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/29436838)
+15. [selenium框架中driver.close()和driver.quit()关闭浏览器-CSDN博客](https://blog.csdn.net/yangfengjueqi/article/details/84338167)
+16. [Xpath 一些使用中遇到的情况 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/72452672)
+17. [python+selenium 滚动条/内嵌滚动条循环下滑，判断是否滑到最底部_webdriver 滚动条多次向下-CSDN博客](https://blog.csdn.net/zhaoweiya/article/details/108996126)
