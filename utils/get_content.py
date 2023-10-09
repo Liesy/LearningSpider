@@ -11,8 +11,10 @@ The final results will be saved at 'saves/[zhihu, quora]' as json
 import os
 import requests
 import json
+import time
 from lxml import etree
 from datetime import datetime
+from selenium import webdriver
 
 # change the following dict with yours
 headers = {
@@ -105,4 +107,58 @@ def get_answer_content_zhihu(url: str, num_ans=top_k, usr_info=None, date_time=N
 
     answer_list.append(answer_dict)
     save_to_json(prefix='zhihu', date_time=date_time)
+    return answer_list
+
+
+def get_answer_content_quora(url, num_ans=top_k, date_time=None):
+    answer_list.clear()  # 否则会重复添加（因为都在内存里指向同一个空间）
+    date_time = t if date_time is None else date_time
+    global top_k
+    if num_ans > 0 and num_ans != top_k:
+        top_k = num_ans
+
+    # 注意对应自己的chrome版本
+    # 在chrome地址栏输入chrome://version即可查看当前chrome的版本。下载对应版本的chromedeiver
+    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver_win64', 'chromedriver.exe'))
+    driver.get(url)
+
+    # 登录
+    username = driver.find_element_by_xpath('//*[@id="email"]')
+    username.send_keys('')
+    password = driver.find_element_by_xpath('//*[@id="password"]')
+    password.send_keys('')
+    submit = driver.find_element_by_xpath('//*[@id="root"]/div/div[2]/div/div/div/div/div/div[2]/div[2]/div[4]/button')
+    time.sleep(30)
+    submit.click()
+
+    time.sleep(10)
+    # 翻页，保证得到足够多的回答
+    js = "window.scrollTo(0,document.body.scrollHeight)"
+    for _ in range(int(top_k / 2)):
+        driver.execute_script(js)
+        time.sleep(3)
+
+    # 将折叠的回答展开
+    stack_ele = driver.find_elements_by_xpath('//div[@class="q-box qu-cursor--pointer QTextTruncated___StyledBox-sc-1pev100-0 gCXnis"]')
+    for ele in stack_ele:
+        try:
+            ele.click()
+            time.sleep(1)
+        except:
+            time.sleep(1)
+            continue
+
+    answer_dict = {}
+    # 找到所有回答框
+    ans_block = driver.find_elements_by_xpath('//div[@class="q-box dom_annotate_question_answer_item_0 qu-borderAll qu-borderRadius--small qu-borderColor--raised qu-boxShadow--small qu-mb--small qu-bg--raised"]')
+    for idx,block in enumerate(ans_block[:num_ans], start=1):
+        usr_url = block.find_element_by_xpath('//a[@class="q-box Link___StyledBox-t2xg9c-0 dFkjrQ puppeteer_test_link qu-color--gray_dark qu-cursor--pointer qu-hover--textDecoration--underline"]').get_attribute('href')
+        answer = block.find_element_by_xpath('//span[@class="q-box qu-userSelect--text"]').text
+        answer_dict[idx] = {
+            'author': usr_url,
+            'content': answer
+        }
+
+    answer_list.append(answer_dict)
+    save_to_json(prefix='quora', date_time=date_time)
     return answer_list

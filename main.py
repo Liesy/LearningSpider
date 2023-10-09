@@ -26,11 +26,7 @@ def get_date(mode):
     """TODO
     对json数据的处理，转换成纯文本
     """
-    if mode == 'zh':
-        data_after_process = process_zh(data)
-    else:
-        data_after_process = process_en(data)
-    return data_after_process
+    return process_zh(data) if mode == 'zh' else process_en(data)
 
 
 def main():

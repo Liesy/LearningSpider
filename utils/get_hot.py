@@ -106,14 +106,14 @@ def get_qa_infos_quora(num_q=top_k, usr_info=None):
 
     # 注意对应自己的chrome版本
     # 在chrome地址栏输入chrome://version即可查看当前chrome的版本。下载对应版本的chromedeiver
-    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver_win32', 'chromedriver.exe'))
+    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver_win64', 'chromedriver.exe'))
     driver.get(url_quora)
 
     # 登录
     username = driver.find_element_by_xpath('//*[@id="email"]')
-    username.send_keys('')
+    username.send_keys('ly18093725295@gmail.com')
     password = driver.find_element_by_xpath('//*[@id="password"]')
-    password.send_keys('')
+    password.send_keys('Future520')
     submit = driver.find_element_by_xpath('//*[@id="root"]/div/div[2]/div/div/div/div/div/div[2]/div[2]/div[4]/button')
     time.sleep(30)
     submit.click()
@@ -122,8 +122,8 @@ def get_qa_infos_quora(num_q=top_k, usr_info=None):
     time.sleep(10)
 
     # 翻 top_k/2 页，保证足够多的问题纳入
+    js = "window.scrollTo(0,document.body.scrollHeight)"
     for _ in range(int(top_k / 2)):
-        js = "window.scrollTo(0,document.body.scrollHeight)"
         driver.execute_script(js)
         time.sleep(3)
 
@@ -136,6 +136,7 @@ def get_qa_infos_quora(num_q=top_k, usr_info=None):
             ele.click()
             time.sleep(1)  # 防止被ban
         except:
+            time.sleep(1)
             continue
 
     urls_ele = driver.find_elements_by_xpath(
