@@ -38,7 +38,8 @@ def get_zh_dataset(save_path, hot_top_k, answer_top_k, date_time=None):
 
         content_list.append(data)
 
-    with open(os.path.join(save_path, f'zh_dataset_{hot_top_k}_{answer_top_k}_{date_time}.json'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(save_path, f'zh_dataset_{hot_top_k}_{answer_top_k}_{date_time}.json'), 'w',
+              encoding='utf-8') as f:
         f.write(json.dumps(content_list, indent=2, ensure_ascii=False))
 
     return content_list
@@ -57,10 +58,11 @@ def get_en_dataset(save_path, hot_top_k, answer_top_k, date_time=None):
     # print(hot_urls)
 
     content_list = []
-    for item_dict in hot_urls[:1]:
+    for item_dict in hot_urls:
         url = item_dict['info']['url']
-        answers_dict = get_answer_content_quora(url, answer_top_k, date_time)
+        print(f'begin processing hot news {item_dict["idx"]} {url}')
 
+        answers_dict = get_answer_content_quora(url, answer_top_k, date_time)[0]
         answers_dict_simple = {
             key: val['content'] for key, val in answers_dict.items()
         }

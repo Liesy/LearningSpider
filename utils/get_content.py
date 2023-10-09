@@ -117,48 +117,73 @@ def get_answer_content_quora(url, num_ans=top_k, date_time=None):
     if num_ans > 0 and num_ans != top_k:
         top_k = num_ans
 
+    global question_id
+    question_id = url.split('/')[-1][:20]  # 防止标题过长
+
     # 注意对应自己的chrome版本
     # 在chrome地址栏输入chrome://version即可查看当前chrome的版本。下载对应版本的chromedeiver
-    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver_win64', 'chromedriver.exe'))
-    driver.get(url)
-
-    # 登录
-    username = driver.find_element_by_xpath('//*[@id="email"]')
-    username.send_keys('')
-    password = driver.find_element_by_xpath('//*[@id="password"]')
-    password.send_keys('')
-    submit = driver.find_element_by_xpath('//*[@id="root"]/div/div[2]/div/div/div/div/div/div[2]/div[2]/div[4]/button')
-    time.sleep(30)
-    submit.click()
-
+    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver_win32', 'chromedriver.exe'))
+    driver.get(url)  # 不需要登录
     time.sleep(10)
+
     # 翻页，保证得到足够多的回答
     js = "window.scrollTo(0,document.body.scrollHeight)"
+    temp_height = 0
     for _ in range(int(top_k / 2)):
         driver.execute_script(js)
         time.sleep(3)
-
-    # 将折叠的回答展开
-    stack_ele = driver.find_elements_by_xpath('//div[@class="q-box qu-cursor--pointer QTextTruncated___StyledBox-sc-1pev100-0 gCXnis"]')
-    for ele in stack_ele:
-        try:
-            ele.click()
-            time.sleep(1)
-        except:
-            time.sleep(1)
-            continue
+        # 获取当前滚动条距离顶部的距离
+        check_height = driver.execute_script(
+            "return document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;")
+        # 如果两者相等说明到底了
+        if check_height == temp_height:
+            break
+        temp_height = check_height
 
     answer_dict = {}
+    counts = 1
     # 找到所有回答框
-    ans_block = driver.find_elements_by_xpath('//div[@class="q-box dom_annotate_question_answer_item_0 qu-borderAll qu-borderRadius--small qu-borderColor--raised qu-boxShadow--small qu-mb--small qu-bg--raised"]')
-    for idx,block in enumerate(ans_block[:num_ans], start=1):
-        usr_url = block.find_element_by_xpath('//a[@class="q-box Link___StyledBox-t2xg9c-0 dFkjrQ puppeteer_test_link qu-color--gray_dark qu-cursor--pointer qu-hover--textDecoration--underline"]').get_attribute('href')
-        answer = block.find_element_by_xpath('//span[@class="q-box qu-userSelect--text"]').text
-        answer_dict[idx] = {
-            'author': usr_url,
-            'content': answer
-        }
+    ans_block = driver.find_elements_by_xpath(
+        '//div[contains(@class, "dom_annotate_question_answer_item_")]')
+    for block in ans_block:
+        try:
+            # 跳过Related
+            related = block.find_element_by_xpath(
+                './/div[@class="q-text qu-dynamicFontSize--small qu-fontWeight--regular"]').text
+            # print(related)
+            if related == 'Related':
+                continue
+        except:
+            pass
+
+        try:
+            driver.execute_script("arguments[0].scrollIntoView();", block)  # 滚动到该位置
+            time.sleep(1)
+            block.click()  # 展开
+            time.sleep(1)
+
+            try:
+                # 可能出现匿名
+                usr_url = block.find_element_by_xpath(
+                    './/a[@class="q-box Link___StyledBox-t2xg9c-0 dFkjrQ puppeteer_test_link qu-color--gray_dark qu-cursor--pointer qu-hover--textDecoration--underline"]').get_attribute(
+                    'href')
+            except:
+                # print('anonymous')
+                usr_url = ''
+            answer = block.find_element_by_xpath('.//span[@class="q-box qu-userSelect--text"]').text
+            if answer == '':
+                continue
+            answer_dict[counts] = {
+                'author': usr_url,
+                'content': answer
+            }
+            counts += 1
+            if counts > num_ans:
+                break
+        except Exception as e:
+            print(f'error: {e} at {url}')
 
     answer_list.append(answer_dict)
     save_to_json(prefix='quora', date_time=date_time)
+    driver.quit()
     return answer_list

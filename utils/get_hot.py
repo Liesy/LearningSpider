@@ -106,26 +106,27 @@ def get_qa_infos_quora(num_q=top_k, usr_info=None):
 
     # 注意对应自己的chrome版本
     # 在chrome地址栏输入chrome://version即可查看当前chrome的版本。下载对应版本的chromedeiver
-    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver_win64', 'chromedriver.exe'))
+    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver_win32', 'chromedriver.exe'))
     driver.get(url_quora)
+    time.sleep(10)
 
     # 登录
     username = driver.find_element_by_xpath('//*[@id="email"]')
-    username.send_keys('ly18093725295@gmail.com')
+    username.send_keys('')
     password = driver.find_element_by_xpath('//*[@id="password"]')
-    password.send_keys('Future520')
+    password.send_keys('')
     submit = driver.find_element_by_xpath('//*[@id="root"]/div/div[2]/div/div/div/div/div/div[2]/div[2]/div[4]/button')
     time.sleep(30)
     submit.click()
 
     # 获取问题和问题链接
-    time.sleep(10)
+    time.sleep(30)
 
     # 翻 top_k/2 页，保证足够多的问题纳入
     js = "window.scrollTo(0,document.body.scrollHeight)"
     for _ in range(int(top_k / 2)):
         driver.execute_script(js)
-        time.sleep(3)
+        time.sleep(1)
 
     questions_ele = driver.find_elements_by_xpath(
         '//div[@class="q-box dom_annotate_multifeed_bundle_AnswersBundle qu-borderAll qu-borderRadius--small qu-borderColor--raised qu-boxShadow--small qu-mb--small qu-bg--raised"]//span[@class="q-box qu-userSelect--text"]')
@@ -160,4 +161,5 @@ def get_qa_infos_quora(num_q=top_k, usr_info=None):
         })
 
     save_to_json(prefix='quora')
+    driver.quit()
     return hot_list
