@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from glob import glob
 from utils.get_datasets import get_zh_dataset, get_en_dataset
-from utils.text_process import process_zh, process_en
+from utils.text_process import Process
 
 t = datetime.now().strftime('%Y-%m-%d')  # record the time now
 
@@ -31,7 +31,7 @@ def get_data(mode, date_time=None):
     注意answer_dict可能为空
     answer中需要把和问题一样的文本过滤掉（爬取的时候有点问题，不过案例不多，个位数）（可以不处理）
     """
-    return process_zh(data) if mode == 'zh' else process_en(data)
+    return data
 
 
 def get_data_from_answer_json(prefix):
@@ -56,9 +56,34 @@ def get_data_from_answer_json(prefix):
     return content_list
 
 
+def get_data_by_dates(mode, date_list=None):
+    if date_list is None:
+        raise FileNotFoundError('date list is empty.')
+    elif not date_list:
+        print('Select all datasets.')
+        file_list = glob(os.path.join(args.save_path, f'{mode}_dataset_{args.hot_top_k}_{args.answer_top_k}_*.json'))
+    else:
+        file_list = [
+            os.path.join(
+                args.save_path,
+                f'{mode}_dataset_{args.hot_top_k}_{args.answer_top_k}_{date}.json',
+            )
+            for date in date_list
+        ]
+    data = []
+    for file in file_list:
+        with open(file, 'r', encoding='utf-8') as f:
+            data_temp = json.load(f)
+        data.extend(data_temp)
+    return data
+
+
 def main():
-    zh_data = get_data('zh', args.time)
     en_data = get_data('en', args.time)
+    zh_data = get_data('zh', args.time)
+
+    # data_after_processing_en = Process(en_data, 'en')
+    # data_after_processing_zh = Process(zh_data, 'zh')
 
 
 if __name__ == '__main__':
