@@ -1,2 +1,4 @@
-saves/*
 .idea
+saves
+utils/chromedriver-win64
+utils/chromedriver-win32
