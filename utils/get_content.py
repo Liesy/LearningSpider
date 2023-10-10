@@ -122,7 +122,7 @@ def get_answer_content_quora(url, num_ans=top_k, date_time=None):
 
     # 注意对应自己的chrome版本
     # 在chrome地址栏输入chrome://version即可查看当前chrome的版本。下载对应版本的chromedeiver
-    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver_win32', 'chromedriver.exe'))
+    driver = webdriver.Chrome(os.path.join('utils', 'chromedriver-win64', 'chromedriver.exe'))
     driver.get(url)  # 不需要登录
     time.sleep(10)
 
