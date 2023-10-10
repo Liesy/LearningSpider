@@ -129,14 +129,24 @@ for _ in range(int(top_k / 2)):
 
 ### 分词 Segmentation
 
-英文相较中文而言分词会简单很多，使用空格进行分割即可。
+英文相较中文而言分词会简单很多，使用空格进行分割即可，但是考虑到为了熟悉使用这些库和准确性，选择使用`nltk.tokenize`进行处理。
 
 ### 标准化
 
 使用`nltk`库进行处理，包含以下两个方面：
 
-- 词干提取 Stemming
+- 词干提取 Stemming，从单词中去除词缀并返回词根，返回的并不是单词，因此我们并不做词干提取，只做词形还原。
 - 词形还原 Lemmazation
+
+# 计算文本熵
+
+## 中文
+
+
+
+## 英文
+
+
 
 # 验证Zipf's law（齐夫定律）
 
@@ -179,3 +189,6 @@ $$
 17. [python+selenium 滚动条/内嵌滚动条循环下滑，判断是否滑到最底部_webdriver 滚动条多次向下-CSDN博客](https://blog.csdn.net/zhaoweiya/article/details/108996126)
 18. [用Python正则实现词频统计并验证Zipf-Law_如何判断是否符合zipf's law python-CSDN博客](https://blog.csdn.net/weixin_43353612/article/details/105147148)
 19. [NLP入门-- 文本预处理Pre-processing - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/53277723)
+20. [Python 类的几个内置装饰器—— Staticmethod Classmethod Property-CSDN博客](https://blog.csdn.net/dzysunshine/article/details/106156920#:~:text=Python 类的几个内置装饰器—— Staticmethod Classmethod,Property 1 @staticmethod不需要表示自身对象的self和自身类的cls参数，就跟使用函数一样。 2 @classmethod也不需要self参数，但第一个参数需要是表示自身类的cls参数。)
+21. [Python collections模块之defaultdict()详解_from collections import defaultdict-CSDN博客](https://blog.csdn.net/chl183/article/details/107446836)
+22. [NLTK使用方法总结_nltk.tokenize-CSDN博客](https://blog.csdn.net/asialee_bird/article/details/85936784)
