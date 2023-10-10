@@ -110,13 +110,51 @@ for _ in range(int(top_k / 2)):
 
 ## 中文数据
 
+### 数据清洗
 
+- 无用标签
+- 特殊符号
+
+### 分词
+
+使用`jieba`库进行分词
 
 ## 英文数据
 
+### 数据清洗 Cleaning
 
+- 无用标签
+- 特殊符号
+- 停用词
+
+### 分词 Segmentation
+
+英文相较中文而言分词会简单很多，使用空格进行分割即可。
+
+### 标准化
+
+使用`nltk`库进行处理，包含以下两个方面：
+
+- 词干提取 Stemming
+- 词形还原 Lemmazation
 
 # 验证Zipf's law（齐夫定律）
+
+在一个自然语言的语料库中，一个词的出现频数和这个词在这个语料中的排名（这个排名是基于出现次数的）成反比。
+
+> Zipf's law states that given some corpus of natural language utterances, the frequency of any word is inversely proportional to its rank in the frequency table.
+
+因此，我们可以以rank为自变量，freq为应变量，画出图像，如果图像是一条直线（反比例函数），则说明定律是正确的：
+$$
+\text{freq}=k\times\frac{1}{\text{rank}}
+$$
+数据越多，验证越准确，因此我们选择共做3次验证，每次增加一组爬取的数据。
+
+## 词频统计
+
+
+
+## 画图验证
 
 
 
@@ -139,3 +177,5 @@ for _ in range(int(top_k / 2)):
 15. [selenium框架中driver.close()和driver.quit()关闭浏览器-CSDN博客](https://blog.csdn.net/yangfengjueqi/article/details/84338167)
 16. [Xpath 一些使用中遇到的情况 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/72452672)
 17. [python+selenium 滚动条/内嵌滚动条循环下滑，判断是否滑到最底部_webdriver 滚动条多次向下-CSDN博客](https://blog.csdn.net/zhaoweiya/article/details/108996126)
+18. [用Python正则实现词频统计并验证Zipf-Law_如何判断是否符合zipf's law python-CSDN博客](https://blog.csdn.net/weixin_43353612/article/details/105147148)
+19. [NLP入门-- 文本预处理Pre-processing - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/53277723)
