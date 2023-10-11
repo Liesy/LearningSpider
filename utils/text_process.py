@@ -44,7 +44,18 @@ class Process:
         self.__char_freq_dict = defaultdict(int)
         self._process()
 
+    @classmethod
+    def construct(cls, data_dict, mode):
+        return cls(data_dict, mode)
+
+    def process(self, data_dict):
+        self.__data_dict = data_dict
+        self._process()
+
     def _process(self):
+        self.__pure_ans_list.clear()
+        self.__word_freq_dict.clear()
+        self.__char_freq_dict.clear()
         for item in self.__data_dict:
             if not item['answers']:  # 未获取到任何答案
                 continue
@@ -65,6 +76,10 @@ class Process:
             self.__word_freq_dict[word] += 1
             for c in word:
                 self.__char_freq_dict[c] += 1
+
+    @staticmethod
+    def calc_entropy(freq_dict):
+        return ...
 
     @property
     def question_answer_dict(self):
@@ -92,6 +107,16 @@ class Process:
         return np.sum(list(self.__word_freq_dict.values()))
 
     @property
+    def word_freq_dict(self):
+        """返回按频率降序排序的 词-频率 字典"""
+        return dict(sorted(self.__word_freq_dict.items(), key=lambda x: x[-1], reverse=True))
+
+    @property
     def character_sum(self):
         """获取数据集中总字（符）数"""
         return np.sum(list(self.__char_freq_dict.values()))
+
+    @property
+    def character_freq_dict(self):
+        """返回按频率降序排序的 字符-频率 字典"""
+        return dict(sorted(self.__char_freq_dict.items(), key=lambda x: x[-1], reverse=True))

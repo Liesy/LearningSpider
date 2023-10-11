@@ -82,8 +82,8 @@ def main():
     en_data = get_data('en', args.time)
     zh_data = get_data('zh', args.time)
 
-    # data_after_processing_en = Process(en_data, 'en')
-    # data_after_processing_zh = Process(zh_data, 'zh')
+    data_after_processing_en = Process.construct(en_data, 'en')
+    data_after_processing_zh = Process.construct(zh_data, 'zh')
 
 
 if __name__ == '__main__':
