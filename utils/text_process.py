@@ -1,4 +1,4 @@
-import re
+import re, string, zhon
 import jieba
 import nltk
 import numpy as np
@@ -7,28 +7,34 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from collections import defaultdict
 
-nltk.download()
+
+# nltk.download()
 
 
 def clean_text(text):
     """清理数字、符号、特殊字符"""
+    text = re.sub(r'\d+', '', text)  # 删除数字
+    for c in string.punctuation:  # 删除英文符号
+        text = text.replace(c, '')
+    for c in zhon.hanzi.punctuation:  # 删除中文符号
+        text = text.replace(c, '')
+    text = re.sub(' +', ' ', text)  # 连续空格变为一个
     return text
 
 
 def process_zh(text):
     text = clean_text(text.strip())
-    """TODO
-    清理非中文字符
-    """
+    text = re.sub('[a-zA-Z]', '', text)  # 删除英文
+    # 删除除中文和空格以外的所有非法字符，其实只保留以下这行就够了
+    text = re.sub('([^\u4e00-\u9fa5 ])', '', text)
     return text
 
 
 def process_en(text):
     text = clean_text(text.strip().lower())
-    stop_words = set(stopwords.words('english'))
-    """TODO
-    清理停用词和非英文字符
-    """
+    text = re.sub('[\u4e00-\u9fa5]', '', text)  # 删除中文
+    # 删除除英文字符和空格以外的所有非法字符，其实只保留以下这行就够了
+    text = re.sub(r'[^A-Za-z ]+', '', text)
     return text
 
 
@@ -39,13 +45,15 @@ class Process:
             raise KeyError(f'mode should be either zh or en, not {mode}')
         self.__mode = mode
 
+        self.__stop_words = set(stopwords.words('english'))
+
         self.__pure_ans_list = []
         self.__word_freq_dict = defaultdict(int)
         self.__char_freq_dict = defaultdict(int)
         self._process()
 
     @classmethod
-    def construct(cls, data_dict, mode):
+    def construct_and_process(cls, data_dict, mode):
         return cls(data_dict, mode)
 
     def process(self, data_dict):
@@ -73,6 +81,10 @@ class Process:
 
     def _update_freq_dict(self, word_list):
         for word in word_list:
+            if word == ' ':
+                continue
+            # if self.__mode == 'en' and word in self.__stop_words:  # 删除停用词
+            #     continue
             self.__word_freq_dict[word] += 1
             for c in word:
                 self.__char_freq_dict[c] += 1
@@ -80,6 +92,10 @@ class Process:
     @staticmethod
     def calc_entropy(freq_dict):
         return ...
+
+    @staticmethod
+    def plot(freq_dict, save_path=None):
+        ...
 
     @property
     def question_answer_dict(self):

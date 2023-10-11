@@ -26,11 +26,6 @@ def get_data(mode, date_time=None):
             data = get_zh_dataset(args.save_path, args.hot_top_k, args.answer_top_k, date_time)
         else:
             data = get_en_dataset(args.save_path, args.hot_top_k, args.answer_top_k, date_time)
-    """TODO
-    对json数据的处理，转换成纯文本
-    注意answer_dict可能为空
-    answer中需要把和问题一样的文本过滤掉（爬取的时候有点问题，不过案例不多，个位数）（可以不处理）
-    """
     return data
 
 
@@ -58,10 +53,10 @@ def get_data_from_answer_json(prefix):
 
 def get_data_by_dates(mode, date_list=None):
     if date_list is None:
-        raise FileNotFoundError('date list is empty.')
-    elif not date_list:
         print('Select all datasets.')
         file_list = glob(os.path.join(args.save_path, f'{mode}_dataset_{args.hot_top_k}_{args.answer_top_k}_*.json'))
+    elif not date_list:
+        raise FileNotFoundError('date list is empty.')
     else:
         file_list = [
             os.path.join(
@@ -81,9 +76,18 @@ def get_data_by_dates(mode, date_list=None):
 def main():
     en_data = get_data('en', args.time)
     zh_data = get_data('zh', args.time)
+    # en_data = get_data_by_dates('en')
+    # zh_data = get_data_by_dates('zh')
 
-    data_after_processing_en = Process.construct(en_data, 'en')
-    data_after_processing_zh = Process.construct(zh_data, 'zh')
+    en_after_processing = Process.construct_and_process(en_data, 'en')
+    zh_after_processing = Process.construct_and_process(zh_data, 'zh')
+
+    with open(os.path.join(args.save_path, 'en_word_freq.csv'), 'w', encoding='utf-8') as f:
+        for k, v in en_after_processing.word_freq_dict.items():
+            f.write(f'{k},{v}\n')
+    with open(os.path.join(args.save_path, 'zh_word_freq.csv'), 'w', encoding='utf-8') as f:
+        for k, v in zh_after_processing.word_freq_dict.items():
+            f.write(f'{k},{v}\n')
 
 
 if __name__ == '__main__':
