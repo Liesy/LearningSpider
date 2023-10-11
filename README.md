@@ -56,22 +56,6 @@ Quora是动态加载页面，因此我们只能通过`selenium`库对浏览器�
 滚动页面时注意如果已经到底端，就跳出循环：
 
 ```python
-
-```
-
-Quora的回答框也很有规律：
-
-<img src="README.assets/image-20231009184532577.png" alt="image-20231009184532577" style="zoom:35%;" />
-
-这时就需要xpath模糊匹配，获得所有包含`q-box dom_annotate_question_answer_item_`的div元素：
-
-```python
-ans_block = driver.find_elements_by_xpath('//div[contains(@class, "dom_annotate_question_answer_item_")]')
-```
-
-然后依次==定位到元素位置==，再进行单击click，==睡眠时间稍长些确保回答被展开==，然后再获取回答内容：
-
-```python
 # 翻页，保证得到足够多的回答
 js = "window.scrollTo(0,document.body.scrollHeight)"
 temp_height = 0
@@ -79,11 +63,32 @@ for _ in range(int(top_k / 2)):
     driver.execute_script(js)
     time.sleep(3)
     # 获取当前滚动条距离顶部的距离
-    check_height = driver.execute_script("return document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;")
+    check_height = driver.execute_script(
+        "return document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;")
     # 如果两者相等说明到底了
     if check_height == temp_height:
         break
     temp_height = check_height
+```
+
+Quora的回答框也很有规律：
+
+<img src="README.assets/image-20231009184532577.png" alt="image-20231009184532577" style="zoom:35%;" />
+
+这时就需要xpath模糊匹配，获得所有包含`dom_annotate_question_answer_item_`的div元素：
+
+```python
+ans_block = driver.find_elements_by_xpath('//div[contains(@class, "dom_annotate_question_answer_item_")]')
+```
+
+然后依次**定位到元素位置**，再进行单击click，**确保回答被展开**，然后再获取回答内容：
+
+```python
+for block in ans_block:
+    driver.execute_script("arguments[0].scrollIntoView();", block)  # 滚动到该位置
+    time.sleep(1)
+    block.click()  # 展开
+    time.sleep(1)
 ```
 
 <img src="README.assets/image-20231009185300875.png" alt="image-20231009185300875" style="zoom:35%;" />
@@ -121,6 +126,7 @@ for _ in range(int(top_k / 2)):
 
 ```python
 import jieba
+
 text = ''
 word_list = jieba.cut(text)
 ```
@@ -131,7 +137,7 @@ word_list = jieba.cut(text)
 
 - 无用标签
 - 特殊符号
-- 停用词
+- 停用词，这里要十分注意，停用词不能用字符串的`replace`函数进行处理（否则会删除所有该字符串，而不是只删单词），只能判等再删除。
 
 ### 分词 Segmentation
 
@@ -139,6 +145,7 @@ word_list = jieba.cut(text)
 
 ```python
 from nltk.tokenize import word_tokenize
+
 text = ''
 word_list = word_tokenize(text)
 ```
@@ -159,17 +166,14 @@ word_list = word_tokenize(text)
 
 ## 中文
 
-
-
 ## 英文
-
-
 
 # 验证Zipf's law（齐夫定律）
 
 在一个自然语言的语料库中，一个词的出现频数和这个词在这个语料中的排名（这个排名是基于出现次数的）成反比。
 
-> Zipf's law states that given some corpus of natural language utterances, the frequency of any word is inversely proportional to its rank in the frequency table.
+> Zipf's law states that given some corpus of natural language utterances, the frequency of any word is inversely
+> proportional to its rank in the frequency table.
 
 因此，我们可以以rank为自变量，freq为应变量，画出图像，如果图像是一条直线（反比例函数），则说明定律是正确的：
 $$
@@ -279,12 +283,14 @@ def clean_text(text):
     """清理数字、符号、特殊字符"""
     return text
 
+
 def process_zh(text):
     text = clean_text(text.strip())
     """TODO
     清理非中文字符
     """
     return text
+
 
 def process_en(text):
     text = clean_text(text.strip().lower())
@@ -298,8 +304,6 @@ def process_en(text):
 由于这三个函数接收字符串文本`text`为参数，可以独立运行，并不依赖于我们的传入的json数据，因此并不将其作为类方法，而是单独作为一个module。
 
 ## 画图验证
-
-
 
 # 参考文档
 
@@ -322,8 +326,11 @@ def process_en(text):
 17. [python+selenium 滚动条/内嵌滚动条循环下滑，判断是否滑到最底部_webdriver 滚动条多次向下-CSDN博客](https://blog.csdn.net/zhaoweiya/article/details/108996126)
 18. [用Python正则实现词频统计并验证Zipf-Law_如何判断是否符合zipf's law python-CSDN博客](https://blog.csdn.net/weixin_43353612/article/details/105147148)
 19. [NLP入门-- 文本预处理Pre-processing - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/53277723)
-20. [Python 类的几个内置装饰器—— Staticmethod Classmethod Property-CSDN博客](https://blog.csdn.net/dzysunshine/article/details/106156920#:~:text=Python 类的几个内置装饰器—— Staticmethod Classmethod,Property 1 @staticmethod不需要表示自身对象的self和自身类的cls参数，就跟使用函数一样。 2 @classmethod也不需要self参数，但第一个参数需要是表示自身类的cls参数。)
+20. [Python 类的几个内置装饰器—— Staticmethod Classmethod Property-CSDN博客](https://blog.csdn.net/dzysunshine/article/details/106156920)
 21. [Python collections模块之defaultdict()详解_from collections import defaultdict-CSDN博客](https://blog.csdn.net/chl183/article/details/107446836)
 22. [NLTK使用方法总结_nltk.tokenize-CSDN博客](https://blog.csdn.net/asialee_bird/article/details/85936784)
 23. [@classmethod使得类里面的某个方法可以直接调用类的方法和变量_classmethod内调用类方法入参-CSDN博客](https://blog.csdn.net/qq_41000421/article/details/84955525)
 24. [(1 封私信 / 21 条消息) python中的cls到底指的是什么，与self有什么区别? - 知乎 (zhihu.com)](https://www.zhihu.com/question/49660420)
+25. [数据分析培训 | Python文本预处理：步骤、使用工具及示例 - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/55962828)
+26. [python | 字符串去除(中文、英文、数字、标点符号)_点号教程免费代码_买猫咪的小鱼干的博客-CSDN博客](https://blog.csdn.net/weixin_43360896/article/details/114499028)
+27. [Python删除字符串中的符号_python去除字符串中的符号_O_nice的博客-CSDN博客](https://blog.csdn.net/O_nice/article/details/124043331)
