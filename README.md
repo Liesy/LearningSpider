@@ -119,6 +119,12 @@ for _ in range(int(top_k / 2)):
 
 使用`jieba`库进行分词
 
+```python
+import jieba
+text = ''
+word_list = jieba.cut(text)
+```
+
 ## 英文数据
 
 ### 数据清洗 Cleaning
@@ -131,12 +137,23 @@ for _ in range(int(top_k / 2)):
 
 英文相较中文而言分词会简单很多，使用空格进行分割即可，但是考虑到为了熟悉使用这些库和准确性，选择使用`nltk.tokenize`进行处理。
 
+```python
+from nltk.tokenize import word_tokenize
+text = ''
+word_list = word_tokenize(text)
+```
+
 ### 标准化
 
 使用`nltk`库进行处理，包含以下两个方面：
 
 - 词干提取 Stemming，从单词中去除词缀并返回词根，返回的并不是单词，因此我们并不做词干提取，只做词形还原。
 - 词形还原 Lemmazation
+
+  ```python
+  from nltk.tokenize import word_tokenize
+  word_list = [wnl.lemmatize(word) for word in word_list]
+  ```
 
 # 计算文本熵
 
@@ -162,7 +179,123 @@ $$
 
 ## 词频统计
 
+创建一个`Process`类用于接收数据并对其进行隐式的统计处理，防止在函数调用过程中更改原有数据，保证安全性和准确性：
 
+```python
+class Process:
+    def __init__(self, data_dict, mode):
+        self.__data_dict = data_dict
+        if mode not in ['zh', 'en']:
+            raise KeyError(f'mode should be either zh or en, not {mode}')
+        self.__mode = mode
+
+        self.__pure_ans_list = []
+        self.__word_freq_dict = defaultdict(int)
+        self.__char_freq_dict = defaultdict(int)
+        self._process()
+
+    @classmethod
+    def construct(cls, data_dict, mode):
+        return cls(data_dict, mode)
+
+    def process(self, data_dict):
+        self.__data_dict = data_dict
+        self._process()
+
+    def _process(self):
+        self.__pure_ans_list.clear()
+        self.__word_freq_dict.clear()
+        self.__char_freq_dict.clear()
+        for item in self.__data_dict:
+            if not item['answers']:  # 未获取到任何答案
+                continue
+            for ans_text in iter(item['answers'].values()):
+                if self.__mode == 'zh':
+                    pure_text = process_zh(ans_text)
+                    word_list = jieba.cut(pure_text)
+                else:
+                    pure_text = process_en(ans_text)
+                    wnl = WordNetLemmatizer()
+                    word_list = [wnl.lemmatize(word) for word in word_tokenize(pure_text)]
+
+                self._update_freq_dict(word_list)
+                self.__pure_ans_list.append(pure_text)
+
+    def _update_freq_dict(self, word_list):
+        for word in word_list:
+            self.__word_freq_dict[word] += 1
+            for c in word:
+                self.__char_freq_dict[c] += 1
+
+    @staticmethod
+    def calc_entropy(freq_dict):
+        return ...
+
+    @property
+    def question_answer_dict(self):
+        """获取传入的 问题-答案 字典"""
+        return self.__data_dict
+
+    @property
+    def pure_answer_list(self):
+        """获取处理过后的所有回答"""
+        return self.__pure_ans_list
+
+    @property
+    def answer_num(self):
+        """获取数据集中回答的个数"""
+        return len(self.__pure_ans_list)
+
+    @property
+    def answer_average_len(self):
+        """获取数据集中回答的平均字符长度"""
+        return self.character_sum / len(self.__pure_ans_list)
+
+    @property
+    def word_sum(self):
+        """获取数据集总词数"""
+        return np.sum(list(self.__word_freq_dict.values()))
+
+    @property
+    def word_freq_dict(self):
+        """返回按频率降序排序的 词-频率 字典"""
+        return dict(sorted(self.__word_freq_dict.items(), key=lambda x: x[-1], reverse=True))
+
+    @property
+    def character_sum(self):
+        """获取数据集中总字（符）数"""
+        return np.sum(list(self.__char_freq_dict.values()))
+
+    @property
+    def character_freq_dict(self):
+        """返回按频率降序排序的 字符-频率 字典"""
+        return dict(sorted(self.__char_freq_dict.items(), key=lambda x: x[-1], reverse=True))
+```
+
+以上代码中使用的公共函数`process_zh`和`process_en`定义如下：
+
+```python
+def clean_text(text):
+    """清理数字、符号、特殊字符"""
+    return text
+
+def process_zh(text):
+    text = clean_text(text.strip())
+    """TODO
+    清理非中文字符
+    """
+    return text
+
+def process_en(text):
+    text = clean_text(text.strip().lower())
+    stop_words = set(stopwords.words('english'))
+    """TODO
+    清理停用词和非英文字符
+    """
+    return text
+```
+
+由于这三个函数接收字符串文本`text`为参数，可以独立运行，并不依赖于我们的传入的json数据，因此并不将其作为类方法，而是单独作为一个module。
 
 ## 画图验证
 
@@ -192,3 +325,5 @@ $$
 20. [Python 类的几个内置装饰器—— Staticmethod Classmethod Property-CSDN博客](https://blog.csdn.net/dzysunshine/article/details/106156920#:~:text=Python 类的几个内置装饰器—— Staticmethod Classmethod,Property 1 @staticmethod不需要表示自身对象的self和自身类的cls参数，就跟使用函数一样。 2 @classmethod也不需要self参数，但第一个参数需要是表示自身类的cls参数。)
 21. [Python collections模块之defaultdict()详解_from collections import defaultdict-CSDN博客](https://blog.csdn.net/chl183/article/details/107446836)
 22. [NLTK使用方法总结_nltk.tokenize-CSDN博客](https://blog.csdn.net/asialee_bird/article/details/85936784)
+23. [@classmethod使得类里面的某个方法可以直接调用类的方法和变量_classmethod内调用类方法入参-CSDN博客](https://blog.csdn.net/qq_41000421/article/details/84955525)
+24. [(1 封私信 / 21 条消息) python中的cls到底指的是什么，与self有什么区别? - 知乎 (zhihu.com)](https://www.zhihu.com/question/49660420)
