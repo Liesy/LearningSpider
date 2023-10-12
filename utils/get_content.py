@@ -8,12 +8,13 @@ The final results will be saved at 'saves/[zhihu, quora]' as json
 * Affiliation: Institute of Computing Technology, Chinese Academy of Sciences
 """
 
-import os
-import requests
 import json
+import os
 import time
-from lxml import etree
 from datetime import datetime
+
+import requests
+from lxml import etree
 from selenium import webdriver
 
 # change the following dict with yours

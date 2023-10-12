@@ -1,14 +1,17 @@
-import re, string, zhon
+from __future__ import annotations
+
+import re
+import string
+from collections import defaultdict
+from math import log2
+
 import jieba
-import nltk
+import matplotlib.pyplot as plt
 import numpy as np
-from nltk.tokenize import word_tokenize
+import zhon
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from collections import defaultdict
-
-
-# nltk.download()
+from nltk.tokenize import word_tokenize
 
 
 def clean_text(text):
@@ -53,10 +56,10 @@ class Process:
         self._process()
 
     @classmethod
-    def construct_and_process(cls, data_dict, mode):
+    def construct_and_process(cls, data_dict: list[dict], mode: str) -> Process:
         return cls(data_dict, mode)
 
-    def process(self, data_dict):
+    def process(self, data_dict: list[dict]) -> None:
         self.__data_dict = data_dict
         self._process()
 
@@ -90,49 +93,71 @@ class Process:
                 self.__char_freq_dict[c] += 1
 
     @staticmethod
-    def calc_entropy(freq_dict):
-        return ...
+    def calc_entropy(freq_dict: dict) -> float:
+        entropy = 0.0
+        char_sum = np.sum(list(freq_dict.values()))
+        for k, v in freq_dict.items():
+            prob = v / char_sum
+            entropy -= prob * log2(prob)
+        return entropy
 
     @staticmethod
-    def plot(freq_dict, save_path=None):
-        ...
+    def plot(freq_dict: dict, top_k: int = 10000, save_path=None) -> None:
+        save_path = '.' if save_path is None else save_path
+
+        plt.title('Zipf-Law', fontsize=18)  # 标题
+        plt.xlabel('rank', fontsize=18)  # 排名
+        plt.ylabel('freq', fontsize=18)  # 频度
+
+        plt.yticks([pow(10, i) for i in range(0, 4)])  # 设置y刻度
+        plt.xticks([pow(10, i) for i in range(0, 4)])  # 设置x刻度
+
+        plt.yscale('log')  # 设置纵坐标的缩放
+        plt.xscale('log')  # 设置横坐标的缩放
+
+        y = list(freq_dict.values())[:top_k]
+        x = list(range(1, top_k + 1))
+        plt.plot(x, y, 'b')  # 绘图
+        plt.savefig(save_path)  # 保存图片
+
+        plt.show()
 
     @property
-    def question_answer_dict(self):
+    def question_answer_dict(self) -> defaultdict:
         """获取传入的 问题-答案 字典"""
         return self.__data_dict
 
     @property
-    def pure_answer_list(self):
+    def pure_answer_list(self) -> list[str]:
         """获取处理过后的所有回答"""
         return self.__pure_ans_list
 
     @property
-    def answer_num(self):
+    def answer_num(self) -> int:
         """获取数据集中回答的个数"""
         return len(self.__pure_ans_list)
 
     @property
-    def answer_average_len(self):
+    def answer_average_len(self) -> float:
         """获取数据集中回答的平均字符长度"""
         return self.character_sum / len(self.__pure_ans_list)
 
     @property
-    def word_sum(self):
+    def word_sum(self) -> int:
         """获取数据集总词数"""
         return np.sum(list(self.__word_freq_dict.values()))
 
     @property
-    def word_freq_dict(self):
+    def word_freq_dict(self) -> dict:
         """返回按频率降序排序的 词-频率 字典"""
         return dict(sorted(self.__word_freq_dict.items(), key=lambda x: x[-1], reverse=True))
 
     @property
-    def character_sum(self):
+    def character_sum(self) -> int:
         """获取数据集中总字（符）数"""
         return np.sum(list(self.__char_freq_dict.values()))
 
     @property
-    def character_freq_dict(self):
+    def character_freq_dict(self) -> dict:
         """返回按频率降序排序的 字符-频率 字典"""
         return dict(sorted(self.__char_freq_dict.items(), key=lambda x: x[-1], reverse=True))

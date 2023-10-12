@@ -1,8 +1,9 @@
-import os
 import json
+import os
 from argparse import ArgumentParser
 from datetime import datetime
 from glob import glob
+
 from utils.get_datasets import get_zh_dataset, get_en_dataset
 from utils.text_process import Process
 
@@ -74,20 +75,51 @@ def get_data_by_dates(mode, date_list=None):
 
 
 def main():
-    en_data = get_data('en', args.time)
-    zh_data = get_data('zh', args.time)
-    # en_data = get_data_by_dates('en')
-    # zh_data = get_data_by_dates('zh')
+    """pipeline入口"""
+
+    """获取新数据"""
+    # en_data = get_data('en', args.time)
+    # zh_data = get_data('zh', args.time)
+
+    """获取已有数据的统计结果"""
+    date_list = ['2023-10-08', '2023-10-09', '2023-10-10']
+    # date_list = ['2023-10-08', '2023-10-09', '2023-10-10',
+    #              '2023-10-11', '2023-10-12', '2023-10-13']
+    # date_list = ['2023-10-08', '2023-10-09', '2023-10-10',
+    #              '2023-10-11', '2023-10-12', '2023-10-13',
+    #              '2023-10-14', '2023-10-15', '2023-10-16']
+    en_data = get_data_by_dates('en', date_list)
+    zh_data = get_data_by_dates('zh', date_list)
 
     en_after_processing = Process.construct_and_process(en_data, 'en')
     zh_after_processing = Process.construct_and_process(zh_data, 'zh')
 
-    with open(os.path.join(args.save_path, 'en_word_freq.csv'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(args.save_path, f'en_word_freq_{len(date_list)}days.csv'), 'w', encoding='utf-8') as f:
         for k, v in en_after_processing.word_freq_dict.items():
             f.write(f'{k},{v}\n')
-    with open(os.path.join(args.save_path, 'zh_word_freq.csv'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(args.save_path, f'zh_word_freq_{len(date_list)}days.csv'), 'w', encoding='utf-8') as f:
         for k, v in zh_after_processing.word_freq_dict.items():
             f.write(f'{k},{v}\n')
+
+    en_entropy = en_after_processing.calc_entropy(en_after_processing.character_freq_dict)
+    zh_entropy = zh_after_processing.calc_entropy(zh_after_processing.character_freq_dict)
+
+    # 输出
+    print('EN:')
+    print(f'Word Count = {en_after_processing.word_sum}')
+    print(f'Char Count = {en_after_processing.character_sum}')
+    print(f'Entropy of Char = {en_entropy}')
+    print('ZH:')
+    print(f'Word Count = {zh_after_processing.word_sum}')
+    print(f'Char Count = {zh_after_processing.character_sum}')
+    print(f'Entropy of Char = {zh_entropy}')
+
+    en_after_processing.plot(en_after_processing.word_freq_dict,
+                             top_k=10000,
+                             save_path=os.path.join(args.save_path, 'en_Zipf_Law.jpg'))
+    zh_after_processing.plot(zh_after_processing.word_freq_dict,
+                             top_k=10000,
+                             save_path=os.path.join(args.save_path, 'zh_Zipf_Law.jpg'))
 
 
 if __name__ == '__main__':

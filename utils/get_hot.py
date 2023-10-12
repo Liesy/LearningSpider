@@ -8,14 +8,14 @@ The final results will be saved at 'saves' as json
 * Affiliation: Institute of Computing Technology, Chinese Academy of Sciences
 """
 
+import json
 import os
 import time
+from datetime import datetime
 
 import requests
-import json
 from lxml import etree
 from selenium import webdriver
-from datetime import datetime
 
 url_zhihu = 'https://www.zhihu.com/hot'
 url_quora = 'https://www.quora.com/'

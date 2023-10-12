@@ -1,8 +1,9 @@
-import os
 import json
+import os
 from datetime import datetime
-from .get_hot import get_hot_infos_zhihu, get_qa_infos_quora
+
 from .get_content import get_answer_content_zhihu, get_answer_content_quora
+from .get_hot import get_hot_infos_zhihu, get_qa_infos_quora
 
 t = datetime.now().strftime('%Y-%m-%d')  # record the time now
 
