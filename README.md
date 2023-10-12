@@ -214,9 +214,57 @@ word_list = word_tokenize(text)
 
 # 计算文本熵
 
+从10月8日起，以连续三天的问答为一个单位，每次实验增加一个单位的数据量。
+
+按字/字符计算熵，计算方式如下：
+$$
+H(x)=-\sum_{i=1}^np(x_i)\log p(x_i)
+$$
+实现很简单（但是注意freq_dict是按freq排序好的）：
+
+```python
+def calc_entropy(freq_dict: dict) -> float:
+    entropy = 0.0
+    char_sum = np.sum(list(freq_dict.values()))
+    for k, v in freq_dict.items():
+        prob = v / char_sum
+        entropy -= prob * log2(prob)
+    return entropy
+```
+
+冯志伟在1989年的统计结果为：
+
+<img src="README.assets/image-20231012123927135.png" alt="image-20231012123927135" style="zoom:50%;" />
+
+从后续结果（统计字/字母的熵，而非单词）可以看出，与上图结果保持一致。
+
+同时可以发现：**在相同规模字符数的情况下，中文词的个数约为英文词个数的3倍**，原因就是中文信息熵较大
+
+<img src="README.assets/image-20231012130013816.png" alt="image-20231012130013816" style="zoom: 80%;" />
+
 ## 中文
 
+- 10月8日至10月10日
+  - 数据规模：2285621 字符
+  - 文本熵：9.5061
+- 10月8日至10月13日
+  - 数据规模：
+  - 文本熵：
+- 10月8日至10月16日
+  - 数据规模
+  - 文本熵：
+
 ## 英文
+
+- 10月8日至10月10日
+  - 数据规模：1902777 字符
+  - 文本熵：4.1932
+- 10月8日至10月13日
+  - 数据规模：
+  - 文本熵：
+- 10月8日至10月16日
+  - 数据规模
+  - 文本熵：
 
 # 验证Zipf's law（齐夫定律）
 
@@ -253,10 +301,10 @@ class Process:
         self._process()
 
     @classmethod
-    def construct_and_process(cls, data_dict, mode):
+    def construct_and_process(cls, data_dict: list[dict], mode: str) -> Process:
         return cls(data_dict, mode)
 
-    def process(self, data_dict):
+    def process(self, data_dict: list[dict]) -> None:
         self.__data_dict = data_dict
         self._process()
 
@@ -290,50 +338,72 @@ class Process:
                 self.__char_freq_dict[c] += 1
 
     @staticmethod
-    def calc_entropy(freq_dict):
-        return ...
+    def calc_entropy(freq_dict: dict) -> float:
+        entropy = 0.0
+        char_sum = np.sum(list(freq_dict.values()))
+        for k, v in freq_dict.items():
+            prob = v / char_sum
+            entropy -= prob * log2(prob)
+        return entropy
 
     @staticmethod
-    def plot(freq_dict, save_path=None):
-        ...
+    def plot(freq_dict: dict, top_k: int = 10000, save_path=None) -> None:
+        save_path = '.' if save_path is None else save_path
+
+        plt.title('Zipf-Law', fontsize=18)  # 标题
+        plt.xlabel('rank', fontsize=18)  # 排名
+        plt.ylabel('freq', fontsize=18)  # 频度
+
+        plt.yticks([pow(10, i) for i in range(0, 4)])  # 设置y刻度
+        plt.xticks([pow(10, i) for i in range(0, 4)])  # 设置x刻度
+
+        plt.yscale('log')  # 设置纵坐标的缩放
+        plt.xscale('log')  # 设置横坐标的缩放
+
+        y = list(freq_dict.values())[:top_k]
+        x = list(range(1, top_k + 1))
+        plt.plot(x, y, 'b')  # 绘图
+        plt.savefig(save_path)  # 保存图片
+
+        plt.show()
 
     @property
-    def question_answer_dict(self):
+    def question_answer_dict(self) -> defaultdict:
         """获取传入的 问题-答案 字典"""
         return self.__data_dict
 
     @property
-    def pure_answer_list(self):
+    def pure_answer_list(self) -> list[str]:
         """获取处理过后的所有回答"""
         return self.__pure_ans_list
 
     @property
-    def answer_num(self):
+    def answer_num(self) -> int:
         """获取数据集中回答的个数"""
         return len(self.__pure_ans_list)
 
     @property
-    def answer_average_len(self):
+    def answer_average_len(self) -> float:
         """获取数据集中回答的平均字符长度"""
         return self.character_sum / len(self.__pure_ans_list)
 
     @property
-    def word_sum(self):
+    def word_sum(self) -> int:
         """获取数据集总词数"""
         return np.sum(list(self.__word_freq_dict.values()))
 
     @property
-    def word_freq_dict(self):
+    def word_freq_dict(self) -> dict:
         """返回按频率降序排序的 词-频率 字典"""
         return dict(sorted(self.__word_freq_dict.items(), key=lambda x: x[-1], reverse=True))
 
     @property
-    def character_sum(self):
+    def character_sum(self) -> int:
         """获取数据集中总字（符）数"""
         return np.sum(list(self.__char_freq_dict.values()))
 
     @property
-    def character_freq_dict(self):
+    def character_freq_dict(self) -> dict:
         """返回按频率降序排序的 字符-频率 字典"""
         return dict(sorted(self.__char_freq_dict.items(), key=lambda x: x[-1], reverse=True))
 ```
@@ -342,6 +412,60 @@ class Process:
 为参数，可以独立运行，并不依赖于我们的传入的json数据，因此并不将其作为类方法，而是单独作为一个module。
 
 ## 画图验证
+
+```python
+def plot(freq_dict: dict, top_k: int = 10000, save_path=None) -> None:
+    save_path = '.' if save_path is None else save_path
+
+    plt.title('Zipf-Law', fontsize=18)  # 标题
+    plt.xlabel('rank', fontsize=18)  # 排名
+    plt.ylabel('freq', fontsize=18)  # 频度
+
+    plt.yticks([pow(10, i) for i in range(0, 4)])  # 设置y刻度
+    plt.xticks([pow(10, i) for i in range(0, 4)])  # 设置x刻度
+
+    plt.yscale('log')  # 设置纵坐标的缩放
+    plt.xscale('log')  # 设置横坐标的缩放
+
+    y = list(freq_dict.values())[:top_k]
+    x = list(range(1, top_k + 1))
+    plt.plot(x, y, 'b')  # 绘图
+    plt.savefig(save_path)  # 保存图片
+
+    plt.show()
+```
+
+与计算文本熵相同，从10月8日起，以连续三天的问答为一个单位，每次实验增加一个单位的数据量。
+
+为画图方便，本实验只取rank top 10000的词汇
+
+### 中文
+
+- 10月8日至10月10日（数据规模：1314693 词）
+
+  <img src="README.assets/zh_Zipf_Law1.jpg" style="zoom:80%;" />
+
+- 10月8日至10月13日（数据规模：）
+
+  
+
+- 10月8日至10月16日（数据规模：）
+
+  
+
+### 英文
+
+- 10月8日至10月10日（数据规模：422141 词）
+
+  <img src="README.assets/en_Zipf_Law1.jpg" style="zoom:80%;" />
+
+- 10月8日至10月13日（数据规模：）
+
+  
+
+- 10月8日至10月16日（数据规模：）
+
+  
 
 # 参考文档
 
@@ -373,3 +497,4 @@ class Process:
 26. [python | 字符串去除(中文、英文、数字、标点符号)_点号教程免费代码_买猫咪的小鱼干的博客-CSDN博客](https://blog.csdn.net/weixin_43360896/article/details/114499028)
 27. [Python删除字符串中的符号_python去除字符串中的符号_O_nice的博客-CSDN博客](https://blog.csdn.net/O_nice/article/details/124043331)
 28. [python - 如何只保留字母数字和空格，同时忽略非 ASCII？ - IT工具网 (coder.work)](https://www.coder.work/article/3189266)
+29. [Python 如何在类型标注时使用自身类? - 知乎 (zhihu.com)](https://www.zhihu.com/question/364520948)
