@@ -43,6 +43,8 @@ while not is_end and num_answer < top_k:
 
 ## Quora数据
 
+> 尚存一些问题，比如quora的提问有很多是提问图片的，导致当天的数据可能并没有很高的质量，但是统计意义上偏差不大
+
 Quora是动态加载页面，因此我们只能通过`selenium`库对浏览器行为进行模拟。
 
 <img src="README.assets/image-20231009103902324.png" alt="image-20231009103902324" style="zoom:35%;" />
@@ -217,9 +219,11 @@ word_list = word_tokenize(text)
 从10月8日起，以连续三天的问答为一个单位，每次实验增加一个单位的数据量。
 
 按字/字符计算熵，计算方式如下：
+
 $$
 H(x)=-\sum_{i=1}^np(x_i)\log p(x_i)
 $$
+
 实现很简单（但是注意freq_dict是按freq排序好的）：
 
 ```python
@@ -248,8 +252,8 @@ def calc_entropy(freq_dict: dict) -> float:
   - 数据规模：2285621 字符
   - 文本熵：9.5061
 - 10月8日至10月13日
-  - 数据规模：
-  - 文本熵：
+  - 数据规模：4335765 字符
+  - 文本熵：9.5258
 - 10月8日至10月16日
   - 数据规模
   - 文本熵：
@@ -260,8 +264,8 @@ def calc_entropy(freq_dict: dict) -> float:
   - 数据规模：1902777 字符
   - 文本熵：4.1932
 - 10月8日至10月13日
-  - 数据规模：
-  - 文本熵：
+  - 数据规模：2663740 字符
+  - 文本熵：4.1932
 - 10月8日至10月16日
   - 数据规模
   - 文本熵：
@@ -445,9 +449,9 @@ def plot(freq_dict: dict, top_k: int = 10000, save_path=None) -> None:
 
   <img src="README.assets/zh_Zipf_Law1.jpg" style="zoom:80%;" />
 
-- 10月8日至10月13日（数据规模：）
+- 10月8日至10月13日（数据规模：2497128 词）
 
-  
+  <img src="README.assets/zh_Zipf_Law2.jpg" style="zoom:80%;" />
 
 - 10月8日至10月16日（数据规模：）
 
@@ -459,9 +463,9 @@ def plot(freq_dict: dict, top_k: int = 10000, save_path=None) -> None:
 
   <img src="README.assets/en_Zipf_Law1.jpg" style="zoom:80%;" />
 
-- 10月8日至10月13日（数据规模：）
+- 10月8日至10月13日（数据规模：585633 词）
 
-  
+  <img src="README.assets/en_Zipf_Law2.jpg" style="zoom:80%;" />
 
 - 10月8日至10月16日（数据规模：）
 
