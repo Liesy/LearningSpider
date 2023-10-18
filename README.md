@@ -254,9 +254,6 @@ def calc_entropy(freq_dict: dict) -> float:
 - 10月8日至10月13日
   - 数据规模：4335765 字符
   - 文本熵：9.5258
-- 10月8日至10月16日
-  - 数据规模
-  - 文本熵：
 
 ## 英文
 
@@ -266,9 +263,6 @@ def calc_entropy(freq_dict: dict) -> float:
 - 10月8日至10月13日
   - 数据规模：2663740 字符
   - 文本熵：4.1932
-- 10月8日至10月16日
-  - 数据规模
-  - 文本熵：
 
 # 验证Zipf's law（齐夫定律）
 
@@ -283,7 +277,7 @@ $$
 \text{freq}=k\times\frac{1}{\text{rank}}
 $$
 
-数据越多，验证越准确，因此我们选择共做3次验证，每次增加一组爬取的数据。
+数据越多，验证越准确，因此我们选择共做2次验证，每次增加一组爬取的数据。
 
 ## 词频统计
 
@@ -453,10 +447,6 @@ def plot(freq_dict: dict, top_k: int = 10000, save_path=None) -> None:
 
   <img src="README.assets/zh_Zipf_Law2.jpg" style="zoom:80%;" />
 
-- 10月8日至10月16日（数据规模：）
-
-  
-
 ### 英文
 
 - 10月8日至10月10日（数据规模：422141 词）
@@ -466,10 +456,6 @@ def plot(freq_dict: dict, top_k: int = 10000, save_path=None) -> None:
 - 10月8日至10月13日（数据规模：585633 词）
 
   <img src="README.assets/en_Zipf_Law2.jpg" style="zoom:80%;" />
-
-- 10月8日至10月16日（数据规模：）
-
-  
 
 # 参考文档
 
